@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>Slot Tracker · Slots del Sol</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root{--bg:#07090f;--surface:#0d1117;--border:rgba(255,255,255,0.07);--gold:#f0b429;--green:#00ff88;--red:#ff4444;--pink:#ff00cc;--text:rgba(255,255,255,0.85);--muted:rgba(255,255,255,0.35);--font-head:'Orbitron',monospace;--font-body:'Rajdhani',sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:15px;min-height:100vh;padding-bottom:32px}
+  .header{background:linear-gradient(135deg,#0d1117,#111827);border-bottom:1px solid var(--border);padding:14px 16px 10px;position:sticky;top:0;z-index:100}
+  .header-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .logo{font-family:var(--font-head);font-size:0.62rem;letter-spacing:0.18em;color:var(--gold);text-shadow:0 0 16px #f0b42966}
+  .header-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+  .balance-pill{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:5px 10px;font-family:var(--font-head);font-size:0.7rem}
+  .balance-val{transition:color 0.4s}
+  .reset-all-btn{background:rgba(255,68,68,0.1);border:1px solid rgba(255,68,68,0.25);color:#ff7777;padding:5px 10px;border-radius:10px;font-family:var(--font-head);font-size:0.55rem;cursor:pointer;letter-spacing:0.06em;white-space:nowrap}
+  .reset-all-btn:active{transform:scale(0.94);background:rgba(255,68,68,0.22)}
+  .tabs{display:flex;gap:5px;margin-top:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex-shrink:0;padding:6px 11px;border-radius:20px;font-family:var(--font-head);font-size:0.55rem;letter-spacing:0.07em;border:1.5px solid transparent;cursor:pointer;transition:all 0.2s;background:rgba(255,255,255,0.04);color:var(--muted)}
+  .tab[data-game="gates"].active  {border-color:#a78bfa;background:rgba(167,139,250,0.12);color:#a78bfa}
+  .tab[data-game="sweet"].active  {border-color:#fb7185;background:rgba(251,113,133,0.12);color:#fb7185}
+  .tab[data-game="sugar"].active  {border-color:#34d399;background:rgba(52,211,153,0.12);color:#34d399}
+  .tab[data-game="burning"].active{border-color:#ff8800;background:rgba(255,136,0,0.12);color:#ff8800}
+  .tab[data-game="spirit"].active {border-color:#38bdf8;background:rgba(56,189,248,0.12);color:#38bdf8}
+  .tab[data-game="summary"].active{border-color:var(--gold);background:rgba(240,180,41,0.12);color:var(--gold)}
+  .game-panel,.summary-panel{display:none;padding:14px 16px}
+  .game-panel.active,.summary-panel.active{display:block}
+  .game-header{border-radius:16px;padding:14px;margin-bottom:14px;display:flex;align-items:center;gap:12px}
+  .game-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+  .game-title{font-family:var(--font-head);font-size:0.78rem;font-weight:900}
+  .game-sub{font-size:0.68rem;color:var(--muted);margin-top:2px}
+  .game-badge{margin-left:auto;font-size:0.55rem;font-family:var(--font-head);padding:4px 8px;border-radius:8px;white-space:nowrap}
+  .config-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px}
+  .card-label{font-size:0.58rem;font-family:var(--font-head);color:var(--muted);letter-spacing:0.12em;margin-bottom:8px}
+  .btn-group{display:flex;gap:5px;flex-wrap:wrap}
+  .btn-opt{padding:5px 9px;border-radius:8px;font-family:var(--font-head);font-size:0.58rem;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);color:var(--muted);cursor:pointer;transition:all 0.15s}
+  .btn-opt.active-opt{background:rgba(240,180,41,0.15);border-color:var(--gold);color:var(--gold)}
+  .btn-sl.active-sl{background:rgba(255,0,204,0.15);border-color:var(--pink);color:var(--pink)}
+  .signal-box{border-radius:14px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:12px;transition:all 0.5s}
+  .signal-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+  .signal-title{font-family:var(--font-head);font-size:0.68rem;font-weight:700}
+  .signal-sub{font-size:0.67rem;color:var(--muted);margin-top:3px;line-height:1.4}
+  .sig-green{background:rgba(0,255,136,0.08);border:1.5px solid rgba(0,255,136,0.3)}.sig-green .signal-icon{background:rgba(0,255,136,0.15)}.sig-green .signal-title{color:var(--green)}
+  .sig-yellow{background:rgba(240,180,41,0.08);border:1.5px solid rgba(240,180,41,0.3)}.sig-yellow .signal-icon{background:rgba(240,180,41,0.15)}.sig-yellow .signal-title{color:var(--gold)}
+  .sig-red{background:rgba(255,68,68,0.08);border:1.5px solid rgba(255,68,68,0.3)}.sig-red .signal-icon{background:rgba(255,68,68,0.15)}.sig-red .signal-title{color:var(--red)}
+  .sig-stop{background:rgba(255,0,204,0.1);border:1.5px solid rgba(255,0,204,0.5)}.sig-stop .signal-icon{background:rgba(255,0,204,0.2)}.sig-stop .signal-title{color:var(--pink)}
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:14px}
+  .stat-pill{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px 4px;text-align:center}
+  .stat-label{font-size:0.53rem;font-family:var(--font-head);color:var(--muted);letter-spacing:0.05em}
+  .stat-val{font-family:var(--font-head);font-size:0.76rem;font-weight:700;margin-top:3px}
+  .register-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:14px}
+  .reg-title{font-size:0.58rem;font-family:var(--font-head);color:var(--muted);letter-spacing:0.12em;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+  .reg-reset-btn{font-size:0.53rem;padding:4px 9px;border-radius:8px;cursor:pointer;background:rgba(255,68,68,0.08);border:1px solid rgba(255,68,68,0.25);color:#ff8888;font-family:var(--font-head);letter-spacing:0.05em}
+  .reg-reset-btn:active{background:rgba(255,68,68,0.2);transform:scale(0.93)}
+  .reg-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+  .reg-field label{font-size:0.62rem;color:var(--muted);display:block;margin-bottom:5px}
+  .counter-row{display:flex;align-items:center;gap:8px}
+  .cnt-btn{width:34px;height:34px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0}
+  .cnt-btn:active{transform:scale(0.88)}
+  .cnt-val{font-family:var(--font-head);font-size:1.1rem;font-weight:700;min-width:28px;text-align:center}
+  .win-input{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:7px 10px;color:var(--text);font-family:var(--font-head);font-size:0.8rem;width:100%;outline:none}
+  .win-input:focus{border-color:var(--gold)}
+  .reg-submit{width:100%;padding:13px;border-radius:12px;border:none;font-family:var(--font-head);font-size:0.68rem;letter-spacing:0.1em;cursor:pointer;transition:all 0.2s;margin-top:4px;font-weight:700}
+  .reg-submit:active{transform:scale(0.97)}
+  .activity-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:14px}
+  .act-title{font-size:0.58rem;font-family:var(--font-head);color:var(--muted);letter-spacing:0.12em;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+  .act-row{margin-bottom:10px}
+  .act-row-top{display:flex;justify-content:space-between;font-size:0.65rem;color:var(--muted);margin-bottom:4px}
+  .act-row-top span:last-child{font-family:var(--font-head);color:var(--text)}
+  .bar-bg{height:6px;border-radius:3px;background:rgba(255,255,255,0.06);overflow:hidden}
+  .bar-fill{height:100%;border-radius:3px;transition:width 0.6s ease}
+  .history-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:14px}
+  .history-title{font-size:0.58rem;font-family:var(--font-head);color:var(--muted);letter-spacing:0.12em;margin-bottom:10px}
+  .history-list{max-height:200px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.1) transparent}
+  .history-item{display:grid;grid-template-columns:26px 1fr auto auto;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.68rem}
+  .history-item:last-child{border-bottom:none}
+  .h-num{font-family:var(--font-head);font-size:0.57rem;color:var(--muted);text-align:right}
+  .h-chips{display:flex;gap:3px;flex-wrap:wrap}
+  .chip{font-size:0.57rem;padding:2px 5px;border-radius:5px}
+  .chip-fire{background:rgba(255,100,0,0.2);color:#ff8833;border:1px solid rgba(255,100,0,0.3)}
+  .chip-scatter{background:rgba(240,180,41,0.2);color:var(--gold);border:1px solid rgba(240,180,41,0.3)}
+  .h-net{font-family:var(--font-head);font-size:0.64rem;text-align:right}
+  .h-win{font-family:var(--font-head);font-size:0.58rem;color:var(--muted);text-align:right}
+  .note-box{border-radius:12px;padding:10px 12px;margin-bottom:14px;font-size:0.68rem;line-height:1.5}
+  .sum-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:12px}
+  .sum-title{font-family:var(--font-head);font-size:0.6rem;color:var(--muted);letter-spacing:0.12em;margin-bottom:12px}
+  .sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .sum-item{text-align:center;padding:9px 4px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid rgba(255,255,255,0.06)}
+  .sum-item-label{font-size:0.53rem;color:var(--muted);font-family:var(--font-head);margin-bottom:4px}
+  .sum-item-val{font-family:var(--font-head);font-size:0.76rem;font-weight:700}
+  .disclaimer{background:rgba(255,165,0,0.05);border:1px solid rgba(255,165,0,0.15);border-radius:12px;padding:10px 12px;margin:0 16px 16px;font-size:0.66rem;color:rgba(255,255,255,0.35);line-height:1.5}
+  .disclaimer b{color:rgba(255,165,0,0.65)}
+  @keyframes flash{0%,100%{opacity:1}50%{opacity:0.3}}
+  .flash{animation:flash 0.5s ease}
+  @keyframes slideup{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .slideup{animation:slideup 0.25s ease}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">⚡ SLOT TRACKER · SLOTS DEL SOL</div>
+    <div class="header-right">
+      <div class="balance-pill">
+        <span style="color:rgba(255,255,255,0.4);font-size:0.58rem">₲</span>
+        <span class="balance-val" id="global-balance">50.000</span>
+      </div>
+      <button class="reset-all-btn" onclick="resetAll()">🔄 RESET TODO</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-game="gates"   onclick="switchTab('gates')">🏛 GATES</div>
+    <div class="tab"        data-game="sweet"   onclick="switchTab('sweet')">🍬 SWEET</div>
+    <div class="tab"        data-game="sugar"   onclick="switchTab('sugar')">🍭 SUGAR</div>
+    <div class="tab"        data-game="burning" onclick="switchTab('burning')">🔥 BURNING</div>
+    <div class="tab"        data-game="spirit"  onclick="switchTab('spirit')">🌋 SPIRIT</div>
+    <div class="tab"        data-game="summary" onclick="switchTab('summary')">📊 TOTAL</div>
+  </div>
+</div>
+
+<!-- ═══ GATES OF OLYMPUS ═══ -->
+<div class="game-panel active" id="panel-gates">
+  <div class="game-header" style="background:linear-gradient(135deg,rgba(167,139,250,.15),rgba(124,58,237,.05));border:1.5px solid rgba(167,139,250,.3)">
+    <div class="game-icon" style="background:rgba(167,139,250,.2)">🏛</div>
+    <div><div class="game-title" style="color:#a78bfa;text-shadow:0 0 12px #a78bfa66">GATES OF OLYMPUS</div><div class="game-sub">Pragmatic Play · RTP 96.5% · Alta Volatilidad</div></div>
+    <div class="game-badge" style="background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);color:#a78bfa">×5000</div>
+  </div>
+  <div class="config-row">
+    <div class="card"><div class="card-label">APUESTA</div><div class="btn-group" id="gates-bet-group">
+      <div class="btn-opt" onclick="setBet('gates',100,this)">₲100</div>
+      <div class="btn-opt active-opt" onclick="setBet('gates',200,this)">₲200</div>
+      <div class="btn-opt" onclick="setBet('gates',500,this)">₲500</div>
+    </div></div>
+    <div class="card"><div class="card-label">STOP LOSS</div><div class="btn-group" id="gates-sl-group">
+      <div class="btn-opt btn-sl" onclick="setSL('gates',20,this)">20%</div>
+      <div class="btn-opt btn-sl active-sl" onclick="setSL('gates',30,this)">30%</div>
+      <div class="btn-opt btn-sl" onclick="setSL('gates',50,this)">50%</div>
+    </div></div>
+  </div>
+  <div class="signal-box sig-yellow" id="gates-signal"><div class="signal-icon">🟡</div><div>
+    <div class="signal-title" id="gates-signal-title">REGISTRÁ TU PRIMERA TIRADA</div>
+    <div class="signal-sub" id="gates-signal-sub">₲200 · Máx 50 tiradas · Cambiá si no cae bono en 30 tiradas</div>
+  </div></div>
+  <div class="stats-row">
+    <div class="stat-pill"><div class="stat-label">TIRADAS</div><div class="stat-val" id="gates-count" style="color:#a78bfa">0</div></div>
+    <div class="stat-pill"><div class="stat-label">🔥 QUEMAS</div><div class="stat-val" id="gates-fires" style="color:#ff8833">0</div></div>
+    <div class="stat-pill"><div class="stat-label">💎 SCATTER</div><div class="stat-val" id="gates-scatters" style="color:#f0b429">0</div></div>
+    <div class="stat-pill"><div class="stat-label">NETO</div><div class="stat-val" id="gates-net" style="color:#00ff88">₲0</div></div>
+  </div>
+  <div class="register-card">
+    <div class="reg-title">REGISTRAR TIRADA<button class="reg-reset-btn" onclick="resetGame('gates')">🗑 RESET JUEGO</button></div>
+    <div class="reg-row">
+      <div class="reg-field"><label>🔥 Quemas (8 símbolos)</label><div class="counter-row"><button class="cnt-btn" onclick="dec('gates-fire-cnt')">−</button><span class="cnt-val" id="gates-fire-cnt">0</span><button class="cnt-btn" onclick="inc('gates-fire-cnt')">+</button></div></div>
+      <div class="reg-field"><label>💎 Scatters caídos</label><div class="counter-row"><button class="cnt-btn" onclick="dec('gates-scatter-cnt')">−</button><span class="cnt-val" id="gates-scatter-cnt">0</span><button class="cnt-btn" onclick="inc('gates-scatter-cnt')">+</button></div></div>
+    </div>
+    <div class="reg-field" style="margin-bottom:10px"><label>💰 Ganancia de la tirada (₲)</label><input class="win-input" type="number" id="gates-win-input" placeholder="0" min="0" inputmode="numeric"/></div>
+    <button class="reg-submit" style="background:rgba(167,139,250,.15);border:1.5px solid rgba(167,139,250,.4);color:#a78bfa" onclick="registerSpin('gates')">⚡ REGISTRAR TIRADA</button>
+  </div>
+  <div class="activity-card">
+    <div class="act-title"><span>ÍNDICE DE ACTIVIDAD</span><span id="gates-activity-score" style="font-family:var(--font-head);color:#a78bfa;font-size:0.68rem">—</span></div>
+    <div class="act-row"><div class="act-row-top"><span>Quemas/tirada (últ.20)</span><span id="gates-bar1-val">—</span></div><div class="bar-bg"><div class="bar-fill" id="gates-bar1" style="width:0%;background:linear-gradient(90deg,#7c3aed,#a78bfa)"></div></div></div>
+    <div class="act-row"><div class="act-row-top"><span>Scatter rate (últ.20)</span><span id="gates-bar2-val">—</span></div><div class="bar-bg"><div class="bar-fill" id="gates-bar2" style="width:0%;background:linear-gradient(90deg,#7c3aed,#a78bfa)"></div></div></div>
+    <div class="act-row"><div class="act-row-top"><span>Hit rate general</span><span id="gates-bar3-val">—</span></div><div class="bar-bg"><div class="bar-fill" id="gates-bar3" style="width:0%;background:linear-gradient(90deg,#7c3aed,#a78bfa)"></div></div></div>
+  </div>
+  <div class="history-card"><div class="history-title">HISTORIAL DE TIRADAS</div>
+    <div class="history-list" id="gates-history"></div>
+    <div style="text-align:center;padding:12px;color:var(--muted);font-size:0.67rem" id="gates-empty">Sin tiradas registradas</div>
+  </div>
+</div>
+
+<!-- ═══ SWEET BONANZA ═══ -->
+<div class="game-panel" id="panel-sweet">
+  <div class="game-header" style="background:linear-gradient(135deg,rgba(251,113,133,.15),rgba(244,63,94,.05));border:1.5px solid rgba(251,113,133,.3)">
+    <div class="game-icon" style="background:rgba(251,113,133,.2)">🍬</div>
+    <div><div class="game-title" style="color:#fb7185;text-shadow:0 0 12px #fb718566">SWEET BONANZA</div><div class="game-sub">Pragmatic Play · RTP 96.48% · Alta Volatilidad</div></div>
+    <div class="game-badge" style="background:rgba(251,113,133,.15);border:1px solid rgba(251,113,133,.3);color:#fb7185">×21100</div>
+  </div>
+  <div class="config-row">
+    <div class="card"><div class="card-label">APUESTA</div><div class="btn-group" id="sweet-bet-group">
+      <div class="btn-opt" onclick="setBet('sweet',100,this)">₲100</div>
+      <div class="btn-opt active-opt" onclick="setBet('sweet',200,this)">₲200</div>
+      <div class="btn-opt" onclick="setBet('sweet',500,this)">₲500</div>
+    </div></div>
+    <div class="card"><div class="card-label">STOP LOSS</div><div class="btn-group" id="sweet-sl-group">
+      <div class="btn-opt btn-sl" onclick="setSL('sweet',20,this)">20%</div>
+      <div class="btn-opt btn-sl active-sl" onclick="setSL('sweet',30,this)">30%</div>
+      <div class="btn-opt btn-sl" onclick="setSL('sweet',50,this)">50%</div>
+    </div></div>
+  </div>
+  <div class="signal-box sig-yellow" id="sweet-signal"><div class="signal-icon">🟡</div><div>
+    <div class="signal-title" id="sweet-signal-title">REGISTRÁ TU PRIMERA TIRADA</div>
+    <div class="signal-sub" id="sweet-signal-sub">₲200 · Bono frecuente · Cambiá si no responde en 30 tiradas</div>
+  </div></div>
+  <div class="stats-row">
+    <div class="stat-pill"><div class="stat-label">TIRADAS</div><div class="stat-val" id="sweet-count" style="color:#fb7185">0</div></div>
+    <div class="stat-pill"><div class="stat-label">🔥 QUEMAS</div><div class="stat-val" id="sweet-fires" style="color:#ff8833">0</div></div>
+    <div class="stat-pill"><div class="stat-label">💎 SCATTER</div><div class="stat-val" id="sweet-scatters" style="color:#f0b429">0</div></div>
+    <div class="stat-pill"><div class="stat-label">NETO</div><div class="stat-val" id="sweet-net" style="color:#00ff88">₲0</div></div>
+  </div>
+  <div class="register-card">
+    <div class="reg-title">REGISTRAR TIRADA<button class="reg-reset-btn" onclick="resetGame('sweet')">🗑 RESET JUEGO</button></div>
+    <div class="reg-row">
+      <div class="reg-field"><label>🔥 Quemas (8 símbolos)</label><div class="counter-row"><button class="cnt-btn" onclick="dec('sweet-fire-cnt')">−</button><span class="cnt-val" id="sweet-fire-cnt">0</span><button class="cnt-btn" onclick="inc('sweet-fire-cnt')">+</button></div></div>
+      <div class="reg-field"><label>💎 Scatters caídos</label><div class="counter-row"><button class="cnt-btn" onclick="dec('sweet-scatter-cnt')">−</button><span class="cnt-val" id="sweet-scatter-cnt">0</span><button class="cnt-btn" onclick="inc('sweet-scatter-cnt')">+</button></div></div>
+    </div>
+    <div class="reg-field" style="margin-bottom:10px"><label>💰 Ganancia de la tirada (₲)</label><input class="win-input" type="number" id="sweet-win-input" placeholder="0" min="0" inputmode="numeric"/></div>
+    <button class="reg-submit" style="background:rgba(251,113,133,.15);border:1.5px solid rgba(251,113,133,.4);color:#fb7185" onclick="registerSpin('sweet')">⚡ REGISTRAR TIRADA</button>
+  </div>
+  <div class="activity-card">
+    <div class="act-title"><span>ÍNDICE DE ACTIVIDAD</span><span id="sweet-activity-score" style="font-family:var(--font-head);color:#fb7185;font-size:0.68rem">—</span></div>
+    <div class="act-row"><div class="act-row-top"><span>Quemas/tirada (últ.20)</span><span id="sweet-bar1-val">—</span></div><div class="bar-bg"><div class="bar-fill" id="sweet-bar1" style="width:0%;background:linear-gradient(90deg,#f43f5e,#fb7185)"></div></div></div>
+    <div class="act-row"><div class="act-row-top"><span>Scatter rate (últ.20)</span><span id="sweet-bar2-val">—</span></div><div class="bar-bg"><div class="bar-fill" id="sweet-bar2" style="width:0%;background:linear-gradient(90deg,#f43f5e,#fb7185)"></div></div></div>
+    <div class="act-row"><div class="act-row-top"><span>Hit rate general</span><span id="sweet-bar3-val">—</span></div><div class="bar-bg"><div class="bar-fill" id="sweet-bar3" style="width:0%;background:linear-gradient(90deg,#f43f5e,#fb7185)"></div></div></div>
+  </div>
+  <div class="history-card"><div class="history-title">HISTORIAL DE TIRADAS</div>
+    <div class="history-list" id="sweet-history"></div>
+    <div style="text-align:center;padding:12px;color:var(--muted);font-size:0.67rem" id="sweet-empty">Sin tiradas registradas</div>
+  </div>
+</div>
+
+<!-- ═══ SUGAR RUSH ═══ -->
+<div class="game-panel" id="panel-sugar">
+  <div class="game-header" style="background:linear-gradient(135deg,rgba(52,211,153,.15),rgba(16,185,129,.05));border:1.5px solid rgba(52,211,153,.3)">
+    <div class="game-icon" style="background:rgba(52,211,153,.2)">🍭</div>
+    <div><div class="game-title" style="color:#34d399;text-shadow:0 0 12px #34d39966">SUGAR RUSH</div><div class="game-sub">Pragmatic Play · RTP 96.5% · Alta Volatilidad</div></div>
+    <div class="game-badge" style="background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.3);color:#34d399">×5000</div>
+  </div>
+  <div class="config-row">
+    <div class="card"><div class="card-label">APUESTA</div><div class="btn-group" id="sugar-bet-group">
+      <div class="btn-opt" onclick="setBet('sugar',100,this)">₲100</div>
+      <div class="btn-opt active-opt" onclick="setBet('sugar',200,this)">₲200</div>
+      <div class="btn-opt" onclick="setBet('sugar',500,this)">₲500</div>
+    </div></div>
+    <div class="card"><div class="card-label">STOP LOSS</div><div class="btn-group" id="sugar-sl-group">
+      <div class="btn-opt btn-sl" onclick="setSL('sugar',20,this)">20%</div>
+      <div class="btn-opt btn-sl active-sl" onclick="setSL('sugar',30,this)">30%</div>
+      <div class="btn-opt btn-sl" onclick="setSL('sugar',50,this)">50%</div>
+    </div></div>
+  </div>
+  <div class="signal-box sig-yellow" id="sugar-signal"><div class="signal-icon">🟡</div><div>
+    <div class="signal-title" id="sugar-signal-title">REGISTRÁ TU PRIMERA TIRADA</div>
+    <div class="signal-sub" id="sugar-signal-sub">₲200 · Bono más lento pero consistente · Máx 50 tiradas</div>
+  </div></div>
+  <div class="stats-row">
+    <div class="stat-pill"><div class="stat-label">TIRADAS</div><div class="stat-val" id="sugar-count" style="color:#34d399">0</div></div>
+    <div class="stat-pill"><div class="stat-label">🔥 QUEMAS</div><div class="stat-val" id="sugar-fires" style="color:#ff8833">0</div></div>
+    <div class="stat-pill"><div class="stat-label">💎 SCATTER</div><div class="stat-val" id="sugar-scatters" style="color:#f0b429">0</div></div>
+    <div class="stat-pill"><div class="stat-label">NETO</div><div class="stat-val" id="sugar-net" style="color:#00ff88">₲0</div></div>
+  </div>
+  <div class="register-card">
+    <div class="reg-title">REGISTRAR TIRADA<button class="reg-reset-btn" onclick="resetGame('sugar')">🗑 RESET JUEGO</button></div>
+    <div class="reg-row">
+      <div class="reg-field"><label>🔥 Quemas (8 símbolos)</label><div class="counter-row"><button class="cnt-btn" onclick="dec('sugar-fire-cnt')">−</button><span class="cnt-val" id="sugar-fire-cnt">0</span><button class="cnt-btn" onclick="inc('sugar-fire-cnt')">+</button></div></div>
+      <div class="reg-field"><label>💎 Scatters caídos</label><div class="counter-row"><button class="cnt-btn" onclick="dec('sugar-scatter-cnt')">−</button><span class="cnt-val" id="sugar-scatter-cnt">0</span><button class="cnt-btn" onclick="inc('sugar-scatter-cnt')">+</button></div></div>
+    </div>
+    <div class="reg-field" style="margin-bottom:10px"><label>💰 Ganancia de la tirada (₲)</label><input class="win-input" type="number" id="sugar-win-input" placeholder="0" min="0" inputmode="numeric"/></div>
+    <button class="reg-submit" style="background:rgba(52,211,153,.15);border:1.5px solid rgba(52,211,153,.4);color:#34d399" onclick="registerSpin('sugar')">⚡ REGISTRAR TIRADA</button>
+  </div>
+  <div class="activity-card">
+    <div class="act-title"><span>ÍNDICE DE ACTIVIDAD</span><span id="sugar-activity-score" style="font-family:var(--font-head);color:#34d399;font-size:0.68rem">—</span></div>
+    <div class="act-row"><div class="act-row-top"><span>Quemas/tirada (últ.20)</span><span id="sugar-bar1-val">—</span></div><div class="bar-bg"><div class="bar-fill" id="sugar-bar1" style="width:0%;background:linear-gradient(90deg,#10b981,#34d399)"></div></div></div>
+    <div class="act-row"><div class="act-row-top"><span>Scatter rate (últ.20)</span><span id="sugar-bar2-val">—</span></div><div class="bar-bg"><div class="bar-fill" id="sugar-bar2" style="width:0%;background:linear-gradient(90deg,#10b981,#34d399)"></div></div></div>
+    <div class="act-row"><div class="act-row-top"><span>Hit rate general</span><span id="sugar-bar3-val">—</span></div><div class="bar-bg"><div class="bar-fill" id="sugar-bar3" style="width:0%;background:linear-gradient(90deg,#10b981,#34d399)"></div></div></div>
+  </div>
+  <div class="history-card"><div class="history-title">HISTORIAL DE TIRADAS</div>
+    <div class="history-list" id="sugar-history"></div>
+    <div style="text-align:center;padding:12px;color:var(--muted);font-size:0.67rem" id="sugar-empty">Sin tiradas registradas</div>
+  </div>
+</div>
+
+<!-- ═══ 20 BURNING HOT ═══ -->
+<div class="game-panel" id="panel-burning">
+  <div class="game-header" style="background:linear-gradient(135deg,rgba(255,136,0,.15),rgba(220,80,0,.05));border:1.5px solid rgba(255,136,0,.3)">
+    <div class="game-icon" style="background:rgba(255,136,0,.2)">🔥</div>
+    <div><div class="game-title" style="color:#ff8800;text-shadow:0 0 12px #ff880066">20 BURNING HOT</div><div class="game-sub">EGT · RTP 95.79% · Vol. Media-Baja · 20 líneas</div></div>
+    <div class="game-badge" style="background:rgba(255,136,0,.15);border:1px solid rgba(255,136,0,.3);color:#ff8800">LINEAL</div>
+  </div>
+  <div class="note-box" style="background:rgba(255,136,0,0.07);border:1px solid rgba(255,136,0,0.2);color:rgba(255,200,100,0.75)">
+    ⚠️ <b style="color:#ff8800">EGT · Sin scatters clásicos.</b> Registrá con 🔥 cuántas líneas de fruta se completaron por tirada. Con 🃏 anotá si cayó el joker comodín. El jackpot se activa con 4 jokers en pantalla.
+  </div>
+  <div class="config-row">
+    <div class="card"><div class="card-label">APUESTA</div><div class="btn-group" id="burning-bet-group">
+      <div class="btn-opt active-opt" onclick="setBet('burning',1000,this)">₲1K</div>
+      <div class="btn-opt" onclick="setBet('burning',2000,this)">₲2K</div>
+      <div class="btn-opt" onclick="setBet('burning',5000,this)">₲5K</div>
+    </div></div>
+    <div class="card"><div class="card-label">STOP LOSS</div><div class="btn-group" id="burning-sl-group">
+      <div class="btn-opt btn-sl" onclick="setSL('burning',20,this)">20%</div>
+      <div class="btn-opt btn-sl active-sl" onclick="setSL('burning',30,this)">30%</div>
+      <div class="btn-opt btn-sl" onclick="setSL('burning',50,this)">50%</div>
+    </div></div>
+  </div>
+  <div class="signal-box sig-yellow" id="burning-signal"><div class="signal-icon">🟡</div><div>
+    <div class="signal-title" id="burning-signal-title">REGISTRÁ TU PRIMERA TIRADA</div>
+    <div class="signal-sub" id="burning-signal-sub">₲1000 · Vol. baja = ciclos cortos · Máx 20 tiradas por sesión</div>
+  </div></div>
+  <div class="stats-row">
+    <div class="stat-pill"><div class="stat-label">TIRADAS</div><div class="stat-val" id="burning-count" style="color:#ff8800">0</div></div>
+    <div class="stat-pill"><div class="stat-label">🔥 LÍNEAS</div><div class="stat-val" id="burning-fires" style="color:#ff8833">0</div></div>
+    <div class="stat-pill"><div class="stat-label">🃏 JOKERS</div><div class="stat-val" id="burning-scatters" style="color:#f0b429">0</div></div>
+    <div class="stat-pill"><div class="stat-label">NETO</div><div class="stat-val" id="burning-net" style="color:#00ff88">₲0</div></div>
+  </div>
+  <div class="register-card">
+    <div class="reg-title">REGISTRAR TIRADA<button class="reg-reset-btn" onclick="resetGame('burning')">🗑 RESET JUEGO</button></div>
+    <div class="reg-row">
+      <div class="reg-field"><label>🔥 Líneas completadas</label><div class="counter-row"><button class="cnt-btn" onclick="dec('burning-fire-cnt')">−</button><span class="cnt-val" id="burning-fire-cnt">0</span><button class="cnt-btn" onclick="inc('burning-fire-cnt')">+</button></div></div>
+      <div class="reg-field"><label>🃏 Jokers caídos</label><div class="counter-row"><button class="cnt-btn" onclick="dec('burning-scatter-cnt')">−</button><span class="cnt-val" id="burning-scatter-cnt">0</span><button class="cnt-btn" onclick="inc('burning-scatter-cnt')">+</button></div></div>
+    </div>
+    <div class="reg-field" style="margin-bottom:10px"><label>💰 Ganancia de la tirada (₲)</label><input class="win-input" type="number" id="burning-win-input" placeholder="0" min="0" inputmode="numeric"/></div>
+    <button class="reg-submit" style="background:rgba(255,136,0,.15);border:1.5px solid rgba(255,136,0,.4);color:#ff8800" onclick="registerSpin('burning')">⚡ REGISTRAR TIRADA</button>
+  </div>
+  <div class="activity-card">
+    <div class="act-title"><span>ÍNDICE DE ACTIVIDAD</span><span id="burning-activity-score" style="font-family:var(--font-head);color:#ff8800;font-size:0.68rem">—</span></div>
+    <div class="act-row"><div class="act-row-top"><span>Líneas/tirada (últ.20)</span><span id="burning-bar1-val">—</span></div><div class="bar-bg"><div class="bar-fill" id="burning-bar1" style="width:0%;background:linear-gradient(90deg,#dc5200,#ff8800)"></div></div></div>
+    <div class="act-row"><div class="act-row-top"><span>Joker rate (últ.20)</span><span id="burning-bar2-val">—</span></div><div class="bar-bg"><div class="bar-fill" id="burning-bar2" style="width:0%;background:linear-gradient(90deg,#dc5200,#ff8800)"></div></div></div>
+    <div class="act-row"><div class="act-row-top"><span>Hit rate general</span><span id="burning-bar3-val">—</span></div><div class="bar-bg"><div class="bar-fill" id="burning-bar3" style="width:0%;background:linear-gradient(90deg,#dc5200,#ff8800)"></div></div></div>
+  </div>
+  <div class="history-card"><div class="history-title">HISTORIAL DE TIRADAS</div>
+    <div class="history-list" id="burning-history"></div>
+    <div style="text-align:center;padding:12px;color:var(--muted);font-size:0.67rem" id="burning-empty">Sin tiradas registradas</div>
+  </div>
+</div>
+
+<!-- ═══ 3 SPIRIT VOLCANO ═══ -->
+<div class="game-panel" id="panel-spirit">
+  <div class="game-header" style="background:linear-gradient(135deg,rgba(56,189,248,.15),rgba(14,165,233,.05));border:1.5px solid rgba(56,189,248,.3)">
+    <div class="game-icon" style="background:rgba(56,189,248,.2)">🌋</div>
+    <div><div class="game-title" style="color:#38bdf8;text-shadow:0 0 12px #38bdf866">3 SPIRIT VOLCANO</div><div class="game-sub">Amusnet · RTP 95.8% · Vol. Media · 3 líneas</div></div>
+    <div class="game-badge" style="background:rgba(56,189,248,.15);border:1px solid rgba(56,189,248,.3);color:#38bdf8">LINEAL</div>
+  </div>
+  <div class="note-box" style="background:rgba(56,189,248,0.07);border:1px solid rgba(56,189,248,0.2);color:rgba(150,220,255,0.75)">
+    ⚠️ <b style="color:#38bdf8">3 líneas activas.</b> Registrá con 🔥 cuántas de las 3 líneas se completaron por tirada (máx 3). Con 🌟 anotá si cayó el símbolo volcán especial que activa el multiplicador.
+  </div>
+  <div class="config-row">
+    <div class="card"><div class="card-label">APUESTA</div><div class="btn-group" id="spirit-bet-group">
+      <div class="btn-opt active-opt" onclick="setBet('spirit',1000,this)">₲1K</div>
+      <div class="btn-opt" onclick="setBet('spirit',2000,this)">₲2K</div>
+      <div class="btn-opt" onclick="setBet('spirit',5000,this)">₲5K</div>
+    </div></div>
+    <div class="card"><div class="card-label">STOP LOSS</div><div class="btn-group" id="spirit-sl-group">
+      <div class="btn-opt btn-sl" onclick="setSL('spirit',20,this)">20%</div>
+      <div class="btn-opt btn-sl active-sl" onclick="setSL('spirit',30,this)">30%</div>
+      <div class="btn-opt btn-sl" onclick="setSL('spirit',50,this)">50%</div>
+    </div></div>
+  </div>
+  <div class="signal-box sig-yellow" id="spirit-signal"><div class="signal-icon">🟡</div><div>
+    <div class="signal-title" id="spirit-signal-title">REGISTRÁ TU PRIMERA TIRADA</div>
+    <div class="signal-sub" id="spirit-signal-sub">₲1000 · Vol. media · Ciclos más predecibles · Máx 20 tiradas</div>
+  </div></div>
+  <div class="stats-row">
+    <div class="stat-pill"><div class="stat-label">TIRADAS</div><div class="stat-val" id="spirit-count" style="color:#38bdf8">0</div></div>
+    <div class="stat-pill"><div class="stat-label">🔥 LÍNEAS</div><div class="stat-val" id="spirit-fires" style="color:#ff8833">0</div></div>
+    <div class="stat-pill"><div class="stat-label">🌟 VOLCÁN</div><div class="stat-val" id="spirit-scatters" style="color:#f0b429">0</div></div>
+    <div class="stat-pill"><div class="stat-label">NETO</div><div class="stat-val" id="spirit-net" style="color:#00ff88">₲0</div></div>
+  </div>
+  <div class="register-card">
+    <div class="reg-title">REGISTRAR TIRADA<button class="reg-reset-btn" onclick="resetGame('spirit')">🗑 RESET JUEGO</button></div>
+    <div class="reg-row">
+      <div class="reg-field"><label>🔥 Líneas completas (0-3)</label><div class="counter-row"><button class="cnt-btn" onclick="decMax('spirit-fire-cnt',3)">−</button><span class="cnt-val" id="spirit-fire-cnt">0</span><button class="cnt-btn" onclick="incMax('spirit-fire-cnt',3)">+</button></div></div>
+      <div class="reg-field"><label>🌟 Símbolo volcán</label><div class="counter-row"><button class="cnt-btn" onclick="dec('spirit-scatter-cnt')">−</button><span class="cnt-val" id="spirit-scatter-cnt">0</span><button class="cnt-btn" onclick="inc('spirit-scatter-cnt')">+</button></div></div>
+    </div>
+    <div class="reg-field" style="margin-bottom:10px"><label>💰 Ganancia de la tirada (₲)</label><input class="win-input" type="number" id="spirit-win-input" placeholder="0" min="0" inputmode="numeric"/></div>
+    <button class="reg-submit" style="background:rgba(56,189,248,.15);border:1.5px solid rgba(56,189,248,.4);color:#38bdf8" onclick="registerSpin('spirit')">⚡ REGISTRAR TIRADA</button>
+  </div>
+  <div class="activity-card">
+    <div class="act-title"><span>ÍNDICE DE ACTIVIDAD</span><span id="spirit-activity-score" style="font-family:var(--font-head);color:#38bdf8;font-size:0.68rem">—</span></div>
+    <div class="act-row"><div class="act-row-top"><span>Líneas/tirada (últ.20)</span><span id="spirit-bar1-val">—</span></div><div class="bar-bg"><div class="bar-fill" id="spirit-bar1" style="width:0%;background:linear-gradient(90deg,#0ea5e9,#38bdf8)"></div></div></div>
+    <div class="act-row"><div class="act-row-top"><span>Volcán rate (últ.20)</span><span id="spirit-bar2-val">—</span></div><div class="bar-bg"><div class="bar-fill" id="spirit-bar2" style="width:0%;background:linear-gradient(90deg,#0ea5e9,#38bdf8)"></div></div></div>
+    <div class="act-row"><div class="act-row-top"><span>Hit rate general</span><span id="spirit-bar3-val">—</span></div><div class="bar-bg"><div class="bar-fill" id="spirit-bar3" style="width:0%;background:linear-gradient(90deg,#0ea5e9,#38bdf8)"></div></div></div>
+  </div>
+  <div class="history-card"><div class="history-title">HISTORIAL DE TIRADAS</div>
+    <div class="history-list" id="spirit-history"></div>
+    <div style="text-align:center;padding:12px;color:var(--muted);font-size:0.67rem" id="spirit-empty">Sin tiradas registradas</div>
+  </div>
+</div>
+
+<!-- ═══ RESUMEN ═══ -->
+<div class="summary-panel" id="panel-summary">
+  <div class="sum-card">
+    <div class="sum-title">BALANCE POR JUEGO</div>
+    <div class="sum-grid">
+      <div class="sum-item"><div class="sum-item-label">🏛 GATES</div><div class="sum-item-val" id="sum-gates" style="color:#a78bfa">₲0</div></div>
+      <div class="sum-item"><div class="sum-item-label">🍬 SWEET</div><div class="sum-item-val" id="sum-sweet" style="color:#fb7185">₲0</div></div>
+      <div class="sum-item"><div class="sum-item-label">🍭 SUGAR</div><div class="sum-item-val" id="sum-sugar" style="color:#34d399">₲0</div></div>
+      <div class="sum-item"><div class="sum-item-label">🔥 BURNING</div><div class="sum-item-val" id="sum-burning" style="color:#ff8800">₲0</div></div>
+      <div class="sum-item"><div class="sum-item-label">🌋 SPIRIT</div><div class="sum-item-val" id="sum-spirit" style="color:#38bdf8">₲0</div></div>
+      <div class="sum-item" style="border-color:rgba(240,180,41,0.2)"><div class="sum-item-label" style="color:var(--gold)">📊 NETO TOTAL</div><div class="sum-item-val" id="sum-total" style="color:#00ff88">₲0</div></div>
+    </div>
+  </div>
+  <div class="sum-card">
+    <div class="sum-title">ESTADÍSTICAS GLOBALES</div>
+    <div class="sum-grid">
+      <div class="sum-item"><div class="sum-item-label">TIRADAS</div><div class="sum-item-val" id="sum-spins">0</div></div>
+      <div class="sum-item"><div class="sum-item-label">APOSTADO</div><div class="sum-item-val" id="sum-wagered" style="color:var(--red)">₲0</div></div>
+      <div class="sum-item"><div class="sum-item-label">GANADO</div><div class="sum-item-val" id="sum-won" style="color:var(--green)">₲0</div></div>
+    </div>
+  </div>
+  <div class="sum-card">
+    <div class="sum-title">RECOMENDACIÓN ACTUAL</div>
+    <div id="sum-recommendation" style="font-size:0.77rem;line-height:1.8;color:rgba(255,255,255,0.55)">Registrá tiradas en cada juego para ver el análisis.</div>
+  </div>
+</div>
+
+<div class="disclaimer">
+  <b>NOTA:</b> Este tracker analiza varianza observada, no predice resultados. Los slots RNG son independientes por tirada. Úsalo para gestión de sesión y control de pérdidas. Jugá responsablemente.
+</div>
+
+<script>
+const GAMES=['gates','sweet','sugar','burning','spirit'];
+const STATE={};
+GAMES.forEach(g=>STATE[g]={spins:[],bet:(g==='burning'||g==='spirit')?1000:200,sl:30});
+let globalBalance=50000;
+
+const gs=v=>"₲"+Math.round(v).toLocaleString("es-PY");
+const pct=v=>(v*100).toFixed(1)+"%";
+
+function switchTab(game){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".game-panel,.summary-panel").forEach(p=>p.classList.remove("active"));
+  document.querySelector(`.tab[data-game="${game}"]`).classList.add("active");
+  if(game==="summary"){document.getElementById("panel-summary").classList.add("active");updateSummary();}
+  else document.getElementById("panel-"+game).classList.add("active");
+}
+
+function inc(id){const e=document.getElementById(id);e.textContent=parseInt(e.textContent)+1;}
+function dec(id){const e=document.getElementById(id);const v=parseInt(e.textContent);if(v>0)e.textContent=v-1;}
+function incMax(id,max){const e=document.getElementById(id);const v=parseInt(e.textContent);if(v<max)e.textContent=v+1;}
+function decMax(id,mx){const e=document.getElementById(id);const v=parseInt(e.textContent);if(v>0)e.textContent=v-1;}
+
+function setBet(game,val,el){STATE[game].bet=val;document.querySelectorAll(`#${game}-bet-group .btn-opt`).forEach(b=>b.classList.remove("active-opt"));el.classList.add("active-opt");}
+function setSL(game,val,el){STATE[game].sl=val;document.querySelectorAll(`#${game}-sl-group .btn-opt`).forEach(b=>b.classList.remove("active-sl"));el.classList.add("active-sl");}
+
+function registerSpin(game){
+  const fires=parseInt(document.getElementById(`${game}-fire-cnt`).textContent);
+  const scatter=parseInt(document.getElementById(`${game}-scatter-cnt`).textContent);
+  const win=parseFloat(document.getElementById(`${game}-win-input`).value)||0;
+  const bet=STATE[game].bet;
+  const net=win-bet;
+  STATE[game].spins.push({fires,scatter,win,bet,net});
+  globalBalance+=net;
+  document.getElementById(`${game}-fire-cnt`).textContent="0";
+  document.getElementById(`${game}-scatter-cnt`).textContent="0";
+  document.getElementById(`${game}-win-input`).value="";
+  updateGame(game);
+  updateGlobalBalance();
+}
+
+function updateGame(game){
+  const spins=STATE[game].spins;const n=spins.length;if(!n)return;
+  const totFires=spins.reduce((a,x)=>a+x.fires,0);
+  const totScatter=spins.reduce((a,x)=>a+x.scatter,0);
+  const totNet=spins.reduce((a,x)=>a+x.net,0);
+  const totWagered=spins.reduce((a,x)=>a+x.bet,0);
+  document.getElementById(`${game}-count`).textContent=n;
+  document.getElementById(`${game}-fires`).textContent=totFires;
+  document.getElementById(`${game}-scatters`).textContent=totScatter;
+  const ne=document.getElementById(`${game}-net`);ne.textContent=gs(totNet);ne.style.color=totNet>=0?"#00ff88":"#ff4444";
+  const last20=spins.slice(-20);const l20=last20.length;
+  const fireRate20=l20?last20.reduce((a,x)=>a+x.fires,0)/l20:0;
+  const scatterRate20=l20?last20.filter(x=>x.scatter>0).length/l20:0;
+  const hitRate=n?spins.filter(x=>x.win>0).length/n:0;
+  const maxF=(game==='spirit')?3:4;
+  setBar(game,1,Math.min(fireRate20/maxF,1),pct(fireRate20/maxF));
+  setBar(game,2,Math.min(scatterRate20,1),pct(scatterRate20));
+  setBar(game,3,Math.min(hitRate,1),pct(hitRate));
+  const score=fireRate20*0.5+scatterRate20*0.3+hitRate*0.2;
+  document.getElementById(`${game}-activity-score`).textContent=(score*100).toFixed(1)+" pts";
+  const lossPct=totWagered>0?Math.abs(Math.min(totNet,0))/50000*100:0;
+  updateSignal(game,score,lossPct,STATE[game].sl,n,totScatter);
+  updateHistory(game,spins);
+}
+
+function setBar(game,idx,ratio,label){
+  document.getElementById(`${game}-bar${idx}`).style.width=(ratio*100).toFixed(1)+"%";
+  document.getElementById(`${game}-bar${idx}-val`).textContent=label;
+}
+
+function updateSignal(game,score,lossPct,sl,n,totScatter){
+  const box=document.getElementById(`${game}-signal`);
+  const title=document.getElementById(`${game}-signal-title`);
+  const sub=document.getElementById(`${game}-signal-sub`);
+  box.className="signal-box slideup";
+  const maxSpins=(game==='burning'||game==='spirit')?20:50;
+  if(lossPct>=sl){box.classList.add("sig-stop");title.textContent="🛑 STOP LOSS ACTIVADO";sub.textContent=`Superaste el ${sl}% de pérdida. Retiro inmediato.`;}
+  else if(n>=maxSpins&&totScatter<2){box.classList.add("sig-red");title.textContent="❄️ MÁQUINA FRÍA · CAMBIAR";sub.textContent=`${maxSpins} tiradas sin activación. Cambiá de juego.`;}
+  else if(score>=0.45){box.classList.add("sig-green");title.textContent="🔥 MÁQUINA ACTIVA · SUBIR APUESTA";sub.textContent="Alta actividad detectada. Podés subir un nivel de apuesta.";}
+  else if(score>=0.2){box.classList.add("sig-yellow");title.textContent="🟡 ACTIVIDAD NORMAL · MANTENER";sub.textContent="Continuá con apuesta actual. Esperá la activación.";}
+  else{box.classList.add("sig-red");title.textContent="🔴 BAJA ACTIVIDAD · PRECAUCIÓN";sub.textContent="Pocas activaciones. Si no mejora en 5 tiradas, cambiá.";}
+  setTimeout(()=>box.classList.remove("slideup"),300);
+}
+
+function updateHistory(game,spins){
+  const el=document.getElementById(`${game}-history`);
+  const empty=document.getElementById(`${game}-empty`);
+  if(!spins.length){el.innerHTML="";empty.style.display="block";return;}
+  empty.style.display="none";
+  const fl=game==='burning'?"🔥":game==='spirit'?"🔥":"🔥";
+  const sl=game==='burning'?"🃏":game==='spirit'?"🌟":"💎";
+  el.innerHTML=[...spins].reverse().slice(0,60).map((s,i)=>{
+    const num=spins.length-i;
+    const chips=[];
+    if(s.fires>0)chips.push(`<span class="chip chip-fire">${fl}×${s.fires}</span>`);
+    if(s.scatter>0)chips.push(`<span class="chip chip-scatter">${sl}×${s.scatter}</span>`);
+    const col=s.net>=0?"#00ff88":"#ff4444";
+    const sign=s.net>=0?"+":"";
+    return `<div class="history-item"><span class="h-num">#${num}</span><span class="h-chips">${chips.length?chips.join(""):'<span style="color:var(--muted);font-size:0.62rem">sin actividad</span>'}</span><span class="h-win">${gs(s.win)}</span><span class="h-net" style="color:${col}">${sign}${gs(s.net)}</span></div>`;
+  }).join("");
+}
+
+function updateGlobalBalance(){
+  const el=document.getElementById("global-balance");
+  el.textContent=Math.round(globalBalance).toLocaleString("es-PY");
+  el.style.color=globalBalance>=50000?"#00ff88":globalBalance>=35000?"#f0b429":"#ff4444";
+  el.classList.add("flash");setTimeout(()=>el.classList.remove("flash"),500);
+}
+
+function updateSummary(){
+  let totSpins=0,totWagered=0,totWon=0;
+  GAMES.forEach(g=>{
+    const s=STATE[g].spins;
+    const net=s.reduce((a,x)=>a+x.net,0);
+    const wag=s.reduce((a,x)=>a+x.bet,0);
+    const won=s.reduce((a,x)=>a+x.win,0);
+    const el=document.getElementById(`sum-${g}`);
+    el.textContent=gs(net);el.style.color=net>=0?"#00ff88":"#ff4444";
+    totSpins+=s.length;totWagered+=wag;totWon+=won;
+  });
+  document.getElementById("sum-spins").textContent=totSpins;
+  document.getElementById("sum-wagered").textContent=gs(totWagered);
+  document.getElementById("sum-won").textContent=gs(totWon);
+  const netTotal=totWon-totWagered;
+  const te=document.getElementById("sum-total");te.textContent=gs(netTotal);te.style.color=netTotal>=0?"#00ff88":"#ff4444";
+  const rec=document.getElementById("sum-recommendation");
+  if(!totSpins){rec.textContent="Registrá tiradas en cada juego para ver el análisis.";return;}
+  const lossRatio=totWagered>0?Math.abs(Math.min(netTotal,0))/50000:0;
+  const lines=[];
+  if(lossRatio>=0.3)lines.push("🛑 <b style='color:#ff00cc'>Stop Loss global 30% alcanzado.</b> Terminá la sesión ahora.");
+  else if(netTotal>=0)lines.push("✅ <b style='color:#00ff88'>Estás en positivo.</b> Retirá el 60% de las ganancias.");
+  const activos=GAMES.filter(g=>{const s=STATE[g].spins;if(!s.length)return false;return s.reduce((a,x)=>a+x.scatter,0)/s.length>0.25;});
+  if(activos.length)lines.push(`🔥 Más activos: <b style='color:#f0b429'>${activos.map(g=>g.toUpperCase()).join(", ")}</b>`);
+  if(!lines.length)lines.push("🟡 Actividad moderada. Seguí registrando tiradas.");
+  rec.innerHTML=lines.join("<br>");
+}
+
+function clearGameUI(game){
+  STATE[game].spins=[];
+  ["count","fires","scatters"].forEach(k=>document.getElementById(`${game}-${k}`).textContent="0");
+  const ne=document.getElementById(`${game}-net`);ne.textContent="₲0";ne.style.color="#00ff88";
+  document.getElementById(`${game}-history`).innerHTML="";
+  document.getElementById(`${game}-empty`).style.display="block";
+  document.getElementById(`${game}-signal`).className="signal-box sig-yellow";
+  document.getElementById(`${game}-signal-title`).textContent="REGISTRÁ TU PRIMERA TIRADA";
+  [1,2,3].forEach(i=>{document.getElementById(`${game}-bar${i}`).style.width="0%";document.getElementById(`${game}-bar${i}-val`).textContent="—";});
+  document.getElementById(`${game}-activity-score`).textContent="—";
+}
+
+function resetGame(game){
+  if(!confirm(`¿Resetear solo ${game.toUpperCase()}?`))return;
+  const netAntes=STATE[game].spins.reduce((a,x)=>a+x.net,0);
+  globalBalance-=netAntes;
+  clearGameUI(game);
+  updateGlobalBalance();
+}
+
+function resetAll(){
+  if(!confirm("¿Resetear TODA la sesión y volver a ₲50.000?"))return;
+  GAMES.forEach(g=>clearGameUI(g));
+  globalBalance=50000;
+  updateGlobalBalance();
+}
+</script>
+</body>
+</html>
