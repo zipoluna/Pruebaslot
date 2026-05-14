@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
 <title>Slot Tracker · Slots del Sol</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
@@ -66,6 +66,8 @@
   .win-input:focus{border-color:var(--gold)}
   .reg-submit{width:100%;padding:13px;border-radius:12px;border:none;font-family:var(--font-head);font-size:0.68rem;letter-spacing:0.1em;cursor:pointer;transition:all 0.2s;margin-top:4px;font-weight:700}
   .reg-submit:active{transform:scale(0.97)}
+  .bonus-btn{width:100%;padding:10px;margin-top:8px;border-radius:12px;border:2px solid var(--gold);background:rgba(240,180,41,0.1);color:var(--gold);font-family:var(--font-head);font-size:0.6rem;font-weight:900;letter-spacing:0.12em;cursor:pointer;transition:all 0.2s}
+  .bonus-btn:active{transform:scale(0.95);background:rgba(240,180,41,0.25)}
   .activity-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:14px}
   .act-title{font-size:0.58rem;font-family:var(--font-head);color:var(--muted);letter-spacing:0.12em;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
   .act-row{margin-bottom:10px}
@@ -123,7 +125,6 @@
   </div>
 </div>
 
-<!-- ═══ GATES OF OLYMPUS ═══ -->
 <div class="game-panel active" id="panel-gates">
   <div class="game-header" style="background:linear-gradient(135deg,rgba(167,139,250,.15),rgba(124,58,237,.05));border:1.5px solid rgba(167,139,250,.3)">
     <div class="game-icon" style="background:rgba(167,139,250,.2)">🏛</div>
@@ -160,6 +161,7 @@
     </div>
     <div class="reg-field" style="margin-bottom:10px"><label>💰 Ganancia de la tirada (₲)</label><input class="win-input" type="number" id="gates-win-input" placeholder="0" min="0" inputmode="numeric"/></div>
     <button class="reg-submit" style="background:rgba(167,139,250,.15);border:1.5px solid rgba(167,139,250,.4);color:#a78bfa" onclick="registerSpin('gates')">⚡ REGISTRAR TIRADA</button>
+    <button class="bonus-btn" onclick="registerBonus('gates')">🎁 ¡EXPLOTÓ BONO! (AUTO-SAVE)</button>
   </div>
   <div class="activity-card">
     <div class="act-title"><span>ÍNDICE DE ACTIVIDAD</span><span id="gates-activity-score" style="font-family:var(--font-head);color:#a78bfa;font-size:0.68rem">—</span></div>
@@ -173,7 +175,6 @@
   </div>
 </div>
 
-<!-- ═══ SWEET BONANZA ═══ -->
 <div class="game-panel" id="panel-sweet">
   <div class="game-header" style="background:linear-gradient(135deg,rgba(251,113,133,.15),rgba(244,63,94,.05));border:1.5px solid rgba(251,113,133,.3)">
     <div class="game-icon" style="background:rgba(251,113,133,.2)">🍬</div>
@@ -210,6 +211,7 @@
     </div>
     <div class="reg-field" style="margin-bottom:10px"><label>💰 Ganancia de la tirada (₲)</label><input class="win-input" type="number" id="sweet-win-input" placeholder="0" min="0" inputmode="numeric"/></div>
     <button class="reg-submit" style="background:rgba(251,113,133,.15);border:1.5px solid rgba(251,113,133,.4);color:#fb7185" onclick="registerSpin('sweet')">⚡ REGISTRAR TIRADA</button>
+    <button class="bonus-btn" onclick="registerBonus('sweet')" style="border-color:#fb7185;color:#fb7185;background:rgba(251,113,133,0.1)">🎁 ¡EXPLOTÓ BONO! (AUTO-SAVE)</button>
   </div>
   <div class="activity-card">
     <div class="act-title"><span>ÍNDICE DE ACTIVIDAD</span><span id="sweet-activity-score" style="font-family:var(--font-head);color:#fb7185;font-size:0.68rem">—</span></div>
@@ -223,7 +225,6 @@
   </div>
 </div>
 
-<!-- ═══ SUGAR RUSH ═══ -->
 <div class="game-panel" id="panel-sugar">
   <div class="game-header" style="background:linear-gradient(135deg,rgba(52,211,153,.15),rgba(16,185,129,.05));border:1.5px solid rgba(52,211,153,.3)">
     <div class="game-icon" style="background:rgba(52,211,153,.2)">🍭</div>
@@ -260,6 +261,7 @@
     </div>
     <div class="reg-field" style="margin-bottom:10px"><label>💰 Ganancia de la tirada (₲)</label><input class="win-input" type="number" id="sugar-win-input" placeholder="0" min="0" inputmode="numeric"/></div>
     <button class="reg-submit" style="background:rgba(52,211,153,.15);border:1.5px solid rgba(52,211,153,.4);color:#34d399" onclick="registerSpin('sugar')">⚡ REGISTRAR TIRADA</button>
+    <button class="bonus-btn" onclick="registerBonus('sugar')" style="border-color:#34d399;color:#34d399;background:rgba(52,211,153,0.1)">🎁 ¡EXPLOTÓ BONO! (AUTO-SAVE)</button>
   </div>
   <div class="activity-card">
     <div class="act-title"><span>ÍNDICE DE ACTIVIDAD</span><span id="sugar-activity-score" style="font-family:var(--font-head);color:#34d399;font-size:0.68rem">—</span></div>
@@ -273,7 +275,6 @@
   </div>
 </div>
 
-<!-- ═══ 20 BURNING HOT ═══ -->
 <div class="game-panel" id="panel-burning">
   <div class="game-header" style="background:linear-gradient(135deg,rgba(255,136,0,.15),rgba(220,80,0,.05));border:1.5px solid rgba(255,136,0,.3)">
     <div class="game-icon" style="background:rgba(255,136,0,.2)">🔥</div>
@@ -313,6 +314,7 @@
     </div>
     <div class="reg-field" style="margin-bottom:10px"><label>💰 Ganancia de la tirada (₲)</label><input class="win-input" type="number" id="burning-win-input" placeholder="0" min="0" inputmode="numeric"/></div>
     <button class="reg-submit" style="background:rgba(255,136,0,.15);border:1.5px solid rgba(255,136,0,.4);color:#ff8800" onclick="registerSpin('burning')">⚡ REGISTRAR TIRADA</button>
+    <button class="bonus-btn" onclick="registerBonus('burning')" style="border-color:#ff8800;color:#ff8800;background:rgba(255,136,0,0.1)">🎁 ¡EXPLOTÓ PREMIO! (AUTO-SAVE)</button>
   </div>
   <div class="activity-card">
     <div class="act-title"><span>ÍNDICE DE ACTIVIDAD</span><span id="burning-activity-score" style="font-family:var(--font-head);color:#ff8800;font-size:0.68rem">—</span></div>
@@ -326,7 +328,6 @@
   </div>
 </div>
 
-<!-- ═══ 3 SPIRIT VOLCANO ═══ -->
 <div class="game-panel" id="panel-spirit">
   <div class="game-header" style="background:linear-gradient(135deg,rgba(56,189,248,.15),rgba(14,165,233,.05));border:1.5px solid rgba(56,189,248,.3)">
     <div class="game-icon" style="background:rgba(56,189,248,.2)">🌋</div>
@@ -366,6 +367,7 @@
     </div>
     <div class="reg-field" style="margin-bottom:10px"><label>💰 Ganancia de la tirada (₲)</label><input class="win-input" type="number" id="spirit-win-input" placeholder="0" min="0" inputmode="numeric"/></div>
     <button class="reg-submit" style="background:rgba(56,189,248,.15);border:1.5px solid rgba(56,189,248,.4);color:#38bdf8" onclick="registerSpin('spirit')">⚡ REGISTRAR TIRADA</button>
+    <button class="bonus-btn" onclick="registerBonus('spirit')" style="border-color:#38bdf8;color:#38bdf8;background:rgba(56,189,248,0.1)">🎁 ¡EXPLOTÓ BONO! (AUTO-SAVE)</button>
   </div>
   <div class="activity-card">
     <div class="act-title"><span>ÍNDICE DE ACTIVIDAD</span><span id="spirit-activity-score" style="font-family:var(--font-head);color:#38bdf8;font-size:0.68rem">—</span></div>
@@ -379,7 +381,6 @@
   </div>
 </div>
 
-<!-- ═══ RESUMEN ═══ -->
 <div class="summary-panel" id="panel-summary">
   <div class="sum-card">
     <div class="sum-title">BALANCE POR JUEGO</div>
@@ -450,6 +451,29 @@ function registerSpin(game){
   updateGlobalBalance();
 }
 
+// NUEVA FUNCION: EXPLOTÓ BONO
+function registerBonus(game){
+  const win=parseFloat(document.getElementById(`${game}-win-input`).value);
+  if(!win || win <= 0){
+    alert("Ingresá cuánto ganaste en el bono primero.");
+    return;
+  }
+  // Registramos la tirada de bono con 1 scatter forzado para marcar la activación
+  const bet=STATE[game].bet;
+  const net=win-bet;
+  STATE[game].spins.push({fires:0,scatter:1,win,bet,net});
+  globalBalance+=net;
+  
+  // Limpiamos UI
+  document.getElementById(`${game}-fire-cnt`).textContent="0";
+  document.getElementById(`${game}-scatter-cnt`).textContent="0";
+  document.getElementById(`${game}-win-input`).value="";
+  
+  updateGame(game);
+  updateGlobalBalance();
+  alert("¡Bono Registrado! Los indicadores se han actualizado.");
+}
+
 function updateGame(game){
   const spins=STATE[game].spins;const n=spins.length;if(!n)return;
   const totFires=spins.reduce((a,x)=>a+x.fires,0);
@@ -486,11 +510,34 @@ function updateSignal(game,score,lossPct,sl,n,totScatter){
   const sub=document.getElementById(`${game}-signal-sub`);
   box.className="signal-box slideup";
   const maxSpins=(game==='burning'||game==='spirit')?20:50;
-  if(lossPct>=sl){box.classList.add("sig-stop");title.textContent="🛑 STOP LOSS ACTIVADO";sub.textContent=`Superaste el ${sl}% de pérdida. Retiro inmediato.`;}
-  else if(n>=maxSpins&&totScatter<2){box.classList.add("sig-red");title.textContent="❄️ MÁQUINA FRÍA · CAMBIAR";sub.textContent=`${maxSpins} tiradas sin activación. Cambiá de juego.`;}
-  else if(score>=0.45){box.classList.add("sig-green");title.textContent="🔥 MÁQUINA ACTIVA · SUBIR APUESTA";sub.textContent="Alta actividad detectada. Podés subir un nivel de apuesta.";}
-  else if(score>=0.2){box.classList.add("sig-yellow");title.textContent="🟡 ACTIVIDAD NORMAL · MANTENER";sub.textContent="Continuá con apuesta actual. Esperá la activación.";}
-  else{box.classList.add("sig-red");title.textContent="🔴 BAJA ACTIVIDAD · PRECAUCIÓN";sub.textContent="Pocas activaciones. Si no mejora en 5 tiradas, cambiá.";}
+  
+  if(lossPct>=sl){
+    box.classList.add("sig-stop");
+    title.textContent="🛑 STOP LOSS ACTIVADO";
+    sub.textContent=`Superaste el ${sl}% de pérdida. Retiro inmediato.`;
+    alert("⚠️ ALERTA: STOP LOSS ALCANZADO EN " + game.toUpperCase() + ". ¡SALIR DEL JUEGO YA!");
+  }
+  else if(n>=maxSpins && totScatter < 1){
+    box.classList.add("sig-red");
+    title.textContent="❄️ MÁQUINA FRÍA · CAMBIAR";
+    sub.textContent=`${maxSpins} tiradas sin activación. Cambiá de juego.`;
+    alert("⚠️ MÁQUINA FRÍA: " + n + " tiradas sin bono en " + game.toUpperCase() + ". SALIR Y CAMBIAR DE JUEGO.");
+  }
+  else if(score>=0.45){
+    box.classList.add("sig-green");
+    title.textContent="🔥 MÁQUINA ACTIVA · SUBIR APUESTA";
+    sub.textContent="Alta actividad detectada. Podés subir un nivel de apuesta.";
+  }
+  else if(score>=0.2){
+    box.classList.add("sig-yellow");
+    title.textContent="🟡 ACTIVIDAD NORMAL · MANTENER";
+    sub.textContent="Continuá con apuesta actual. Esperá la activación.";
+  }
+  else{
+    box.classList.add("sig-red");
+    title.textContent="🔴 BAJA ACTIVIDAD · PRECAUCIÓN";
+    sub.textContent="Pocas activaciones. Si no mejora en 5 tiradas, cambiá.";
+  }
   setTimeout(()=>box.classList.remove("slideup"),300);
 }
 
